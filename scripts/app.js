@@ -1,55 +1,90 @@
-
-function saveTask()
-{   
+function saveTask() {
     //get values from the DOM
     const title = $("#txtTitle").val();
-    const desc =$("#txtDescription").val();
-    const color =$("#selColor").val();
-    const date =$("#selDate").val();
-    const status =$("#selStatus").val();
-    const budget =$("#numBudget").val();
+    const desc = $("#txtDescription").val();
+    const color = $("#selColor").val();
+    const date = $("#selDate").val();
+    const status = $("#selStatus").val();
+    const budget = $("#numBudget").val();
     //Create the object
     const taskToSave = new Task(title, desc, color, date, status, budget);
     console.log(taskToSave);
 
     //mock the response from the server
-    displayTask(taskToSave);
+    //displayTask(taskToSave);
 
     //Send to Server
     $.ajax({
-        type:"POST",// HTTP Verb : Create
+        type: "POST", // HTTP Verb : Create
         url: API,
         data: JSON.stringify(taskToSave),
-        contentType:"application/json",
-        success:function(created){
+        contentType: "application/json",
+        success: function (created) {
             console.log(created);
         },
-        error: function(err){
+        error: function (err) {
             console.log(err);
-        }
-    })
-
-}
-
-const API = "https://106api-b0bnggbsgnezbzcz.westus3-01.azurewebsites.net/api/tasks";
-
-function loadTask(){
-    $.ajax({
-        type:"get", //HTTP Verb. READ
-        url: API,
-        dataType:"json",//Expected format
-        success: function(data){
-            console.log(data);
         },
-        error:function(err){
-            console.log(err);
-        }
-    })
+    });
 }
 
-function displayTask(task){
-let syntax =  `
-    <div class="task" style="border-color:${task.color}">
+function updateTask() {
+    $.ajax({
+        type: "PUT", // HTTP Verb: Update
+        url: "https://106api-b0bnggbsgnezbzcz.westus3-01.azurewebsites.net/api/tasks/1",
+        data: JSON.stringify({
+            title: "Adrian",
+            budget: 9999,
+        }),
+        contentType: "application/json",
+        success: function (response) {
+            console.log(response);
+        },
+        error: function (err) {
+            console.log(err);
+        },
+    });
+}
+
+const API =
+    "https://106api-b0bnggbsgnezbzcz.westus3-01.azurewebsites.net/api/tasks";
+
+function loadTask() {
+    $.ajax({
+        type: "get", //HTTP Verb. READ
+        url: API,
+        dataType: "json", //Expected format
+        success: function (data) {
+            console.log(data);
+            //minichallange: try to solve the commnication problem, bacause we are trying
+            //to send 8 elements into a single container. this is a logic problem
+            $(".list").empty();
+            for (let i = 0; i < data.length; i++) {
+                displayTask(data[i]);
+            }
+        },
+        error: function (err) {
+            console.log(err);
+        },
+    });
+}
+
+function deleteTask(){
+    //1. Context: this is the specific button that was clicked
+    let btn = $(this);
+
+    //2. Find the parent div with the class task
+    let taskElement = btn.parents(".task");
+
+    //3. Get the ID that we save in to the HTML
+    let id= taskElement.attr("id");
+
+    console.log("requesting id is", id);
+}
+
+function displayTask(task) {
+    let syntax = `
+    <div class="task" id= ${task.id} style="border-color:${task.color}">
       <div class="info">
         <h4>${task.title}</h4>
         <p>${task.desc}</p>
@@ -59,18 +94,19 @@ let syntax =  `
         <label>Due: ${task.date}</label>
         <label>Budget: $${task.budget}</label>
       </div>
+      <button class="btn-delete"> Delete </button>
     </div>`;
-    
-  // Inject the new HTML into the DOM Tree
-  $(".list").append(syntax);
 
+    // Inject the new HTML into the DOM Tree
+    $(".list").append(syntax);
 }
 
-function init(){
-    console.log("Hello from 106");
+function init() {
     $("#btnSave").click(saveTask);
-
+    //$(".btn-delete").click(updateTask);
     //load data from the server
+    //On click inside ".list", if target is ".btn-delete", run fuction
+    $(".list").on("click",".btn-delete",deleteTask);
     loadTask();
 }
 
